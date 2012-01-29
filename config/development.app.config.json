@@ -1,0 +1,21 @@
+{
+    "http":{
+        "port":8080
+    },
+
+    "mongo":{
+        "host":"localhost",
+        "port":27017,
+        "database":"development",
+
+        "serverOptions":{
+            "auto_reconnect":true,
+            "poolSize":2
+        },
+
+        "dbOptions":{
+            "native_parser":false
+        }
+    }
+
+}
