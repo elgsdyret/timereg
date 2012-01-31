@@ -7,7 +7,7 @@ module.exports = function (app) {
             if (err) {
                 throw err;
             }
-            res.send(JSON.stringify(arr));
+            res.json(arr);
         });
     };
 
@@ -42,7 +42,7 @@ module.exports = function (app) {
             if (err) {
                 throw err;
             }
-            res.send(JSON.stringify(docs));            
+            res.json(docs);            
         });        
 
 
