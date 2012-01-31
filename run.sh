@@ -1,2 +1,2 @@
 #!/bin/sh
-APP_ENV=development NODE_ENV=development node source/app.js
+APP_ENV=development NODE_ENV=development node source/timeRegServer.js
