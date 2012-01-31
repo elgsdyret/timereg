@@ -14,7 +14,6 @@ module.exports = function (app) {
     app.http.post("/timeregs/", createTimeRegForToday);
 
     function createTimeRegForToday(req, res) {
-      
         var rightNow = new Date();        
         var cloneDate = function(fromDate) {
             var date = new Date();
@@ -39,7 +38,6 @@ module.exports = function (app) {
             description: 'sba backend'            
         }
 
-        // TODO: do we want to close the db connection?
         app.mongo.timereg.insert(timeRegToDay, function(err, docs) {
             if (err) {
                 throw err;

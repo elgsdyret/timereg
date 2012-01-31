@@ -9,14 +9,16 @@ app.mongo = require('./mongo/init')(app);
 var express = require('express');
 app.http = express.createServer();
 
-app.http.configure(function () {
-    app.http.use(express.logger());
+app.http.configure(function(){
+	app.http.use(express.logger());
+    app.http.use(express.methodOverride());
+    app.http.use(express.bodyParser());
     app.http.use(app.http.router);
 });
 
 app.http.configure('development', function () {
     app.http.use(express.errorHandler({ dumpExceptions:true, showStack:true }));
-    app.http.use(express.static(__dirname + '/public'));
+	app.http.use(express.static(__dirname + '/public'));
 });
 
 app.http.configure('production', function () {
