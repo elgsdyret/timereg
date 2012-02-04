@@ -2,3 +2,13 @@
 Building a time registration app based on node.js, mongo, and backbone in the client.
 
 Based on e-conomic/NodeMongoBoiler
+
+
+TODO:
+
+- how to model date and time-intervals in a good way?
+-- should each registration be seperate document (and use map-reduce to find for a given day) - or a document for a day
+
+-- breaktime should be part of day...
+-- timeregs should be added to a day
+

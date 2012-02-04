@@ -1,7 +1,9 @@
-module.exports = function (app) {
-    
-    app.http.get("/timeregs/", timeregs);
+var _ = require('underscore');
 
+module.exports = function (app) {    
+    var registrationFactory = require('../models/registrationFactory')();
+
+    app.http.get("/timeregs/", timeregs);
     function timeregs(req, res) {
         app.mongo.timereg.find({}).toArray(function (err, arr) {
             if (err) {
@@ -11,41 +13,17 @@ module.exports = function (app) {
         });
     };
 
-    app.http.post("/timeregs/", createTimeRegForToday);
-
-    function createTimeRegForToday(req, res) {
-        var rightNow = new Date();        
-        var cloneDate = function(fromDate) {
-            var date = new Date();
-            date.setFullYear(fromDate.getFullYear());
-            date.setMonth(fromDate.getMonth());
-            date.setDate(fromDate.getDate());    
-            return date;                
-        };
-
-        var startTime = cloneDate(rightNow);        
-        startTime.setHours(8);
-        startTime.setMinutes(30);
-
-        var endTime = cloneDate(rightNow);
-        endTime.setHours(16);
-        endTime.setMinutes(30);
-
-        var timeRegToDay = {
-            start: startTime,
-            end: endTime,
-            breakTime: '30m',
-            description: 'sba backend'            
-        }
-
-        app.mongo.timereg.insert(timeRegToDay, function(err, docs) {
+    app.http.post("/timeregs/", createTimeReg);
+    function createTimeReg(req, res) {        
+        var timeRegToDay = registrationFactory.forToday();                
+        var timeReg = _({}).extend(timeRegToDay, req.body);
+        app.mongo.timereg.insert(timeReg, function(err, docs) {
             if (err) {
                 throw err;
             }
-            res.json(docs);            
+
+            // TODO: check for more than 1 doc?                
+            res.json(docs[0]);            
         });        
-
-
     };
-
 };
