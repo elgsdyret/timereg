@@ -28,7 +28,7 @@ describe('adding a single registration', function(){
       expect(regsAfter).toBe(regsBefore+1);
     });
 	});
-  it('it should be in list after being added', function(){
+  it('should be in list after being added', function(){
         
     var createdRegistration = null;
     restler.post(url).on('complete', afterCreation);
@@ -50,7 +50,7 @@ describe('adding a single registration', function(){
       expect(matchingRegistrations.length).toBe(1);
     });
   });
-  it('it should default to the current date', function(){
+  it('should default to the current date', function(){
     var today = new Date();          
     var registration = {              
         start: '04:22',
@@ -75,7 +75,7 @@ describe('adding a single registration', function(){
       expect(createdRegistration.year).toEqual(today.getFullYear());
     });
   });
-  it('it should contain the data put in', function(){
+  it('should contain the data put in', function(){
         
     var registration = {      
         day: '7',
@@ -105,6 +105,79 @@ describe('adding a single registration', function(){
       expect(createdRegistration.end).toEqual(registration.end);
       expect(createdRegistration.breakTime).toEqual(registration.breakTime);
       expect(createdRegistration.description).toEqual(registration.description);
+    });
+  });
+  it('should update data', function(){        
+    var updatedRegistration = null;
+    
+    restler.post(url).on('complete', afterCreation);
+    
+    function afterCreation(data, resp){    
+      var updateUrl = url + data._id;
+      restler.put(updateUrl, {data: {'description': 'new description'}}).on('complete', afterUpdate);      
+    };
+
+    function afterUpdate(data, resp){            
+      updatedRegistration = data;
+    };
+  
+    waitsFor(function() {
+      return updatedRegistration;
+    }, 200);
+
+    runs(function(){      
+      expect(updatedRegistration.description).toBe('new description');      
+    });
+  });
+  it('should be able to retrieve specific registration', function(){        
+    var createdRegistration = null;    
+    var retrievedRegistration = null;
+    restler.post(url).on('complete', afterCreation);
+    
+    function afterCreation(data, resp){    
+      createdRegistration = data;
+      var getSpecificUrl = url + data._id;
+      restler.get(getSpecificUrl).on('complete', specificRetrieved);      
+    };
+
+    function specificRetrieved(data, resp){            
+      retrievedRegistration = data;
+    };
+  
+    waitsFor(function() {
+      return retrievedRegistration;
+    }, 200);
+
+    runs(function(){      
+      expect(retrievedRegistration._id).toBe(createdRegistration._id);      
+    });
+  });
+  it('should not be able to retrieve deleted registration', function(){        
+    var createdRegistration = null;    
+    var retrievedRegistration = null;
+    var specificUrl = null;
+
+    restler.post(url).on('complete', afterCreation);    
+    function afterCreation(data, resp){          
+      specificUrl = url + data._id;
+      restler.del(specificUrl).on('complete', deleted);      
+    };
+
+    function deleted(data, resp){                  
+      restler.get(specificUrl).on('4XX', notFound);
+    };
+
+    var notThere = null;
+    function notFound(){
+      notThere = true;
+    }
+  
+    waitsFor(function() {
+      return notThere;
+    }, 200);
+
+    runs(function(){      
+      expect(notThere).toBeTruthy();      
     });
   });
 });
