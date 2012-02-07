@@ -4,21 +4,20 @@ var registrationFactory = require('../models/registrationFactory')();
 
 module.exports = function (app) {    
     
-    app.http.get("/timeregs/", getAllTimeregs);
-    function getAllTimeregs(req, res, next) {
+    app.http.get("/timeregs/", getTimeregs);
+    function getTimeregs(req, res, next) {                        
         app.mongo.timereg.find({}).toArray(function (err, arr) {
             if (err) {
                 return next(app.errors.mongoError(err));
             }
-
             res.json(arr);
-        });
+        });                    
     };
 
     app.http.post("/timeregs/", createTimeReg);
-    function createTimeReg(req, res, next) {        
+    function createTimeReg(req, res, next) {                
         var timeRegToDay = registrationFactory.forToday();                
-        var timeReg = _({}).extend(timeRegToDay, req.body);
+        var timeReg = _({}).extend(timeRegToDay, req.body);        
         app.mongo.timereg.insert(timeReg, function(err, docs) {
             if (err) {
                 return next(app.errors.mongoError(err));
@@ -26,6 +25,16 @@ module.exports = function (app) {
 
             res.json(docs[0]);            
         });        
+    };
+
+    app.http.post("/timeregs/query/", runQuery);
+    function runQuery(req, res, next) {           
+        app.mongo.timereg.find(req.body).toArray(function (err, arr) {
+            if (err) {
+                return next(app.errors.mongoError(err));
+            }            
+            res.json(arr);
+        });                    
     };
 
     app.http.get("/timeregs/:id", getSpecificTimeReg);

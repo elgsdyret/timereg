@@ -10,15 +10,15 @@ describe('adding a single registration', function(){
     function setRegistrationsBefore(data, resp){                              
         regsBefore = data.length;     
         restler.post(url).on('complete', afterCreation);
-    };
+    }
 
     function afterCreation(){     
         restler.get(url).on('complete', setRegistrationsAfter);  
-    };
+    }
 
     function setRegistrationsAfter(data, resp){               
         regsAfter = data.length;
-    };
+    }
       
     waitsFor(function() {
       return regsAfter;
@@ -35,12 +35,12 @@ describe('adding a single registration', function(){
     function afterCreation(data, resp){
       createdRegistration = data;              
       restler.get(url).on('complete', checkItIsCreated);
-    };
+    }
 
     var matchingRegistrations = null;
     function checkItIsCreated(data, resp){      
       matchingRegistrations = _(data).filter(function(registration) { return registration._id == createdRegistration._id; });     
-    };
+    }
 
     waitsFor(function() {
       return matchingRegistrations;
@@ -63,7 +63,7 @@ describe('adding a single registration', function(){
     restler.post(url, {data: registration}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;                    
-    };
+    }
     
     waitsFor(function() {
       return createdRegistration;
@@ -91,7 +91,7 @@ describe('adding a single registration', function(){
     restler.post(url, {data: registration}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;                    
-    };
+    }
     
     waitsFor(function() {
       return createdRegistration;
@@ -115,11 +115,11 @@ describe('adding a single registration', function(){
     function afterCreation(data, resp){    
       var updateUrl = url + data._id;
       restler.put(updateUrl, {data: {'description': 'new description'}}).on('complete', afterUpdate);      
-    };
+    }
 
     function afterUpdate(data, resp){            
       updatedRegistration = data;
-    };
+    }
   
     waitsFor(function() {
       return updatedRegistration;
@@ -138,11 +138,11 @@ describe('adding a single registration', function(){
       createdRegistration = data;
       var getSpecificUrl = url + data._id;
       restler.get(getSpecificUrl).on('complete', specificRetrieved);      
-    };
+    }
 
     function specificRetrieved(data, resp){            
       retrievedRegistration = data;
-    };
+    }
   
     waitsFor(function() {
       return retrievedRegistration;
@@ -161,11 +161,11 @@ describe('adding a single registration', function(){
     function afterCreation(data, resp){          
       specificUrl = url + data._id;
       restler.del(specificUrl).on('complete', deleted);      
-    };
+    }
 
     function deleted(data, resp){                  
       restler.get(specificUrl).on('4XX', notFound);
-    };
+    }
 
     var notThere = null;
     function notFound(){
@@ -178,6 +178,39 @@ describe('adding a single registration', function(){
 
     runs(function(){      
       expect(notThere).toBeTruthy();      
+    });
+  });
+  it('should be possible to retrieve registrations by simple query', function(){
+    var rightNow = new Date().getTime();            
+
+    // TODO: a type problem?
+    var registration = { description: '' + rightNow };
+
+    restler.post(url, {data: registration}).on('complete', afterCreation);
+
+    function afterCreation(){
+      restler.post(url, {data: registration}).on('complete', afterCreation2);
+    }
+
+    function afterCreation2(){
+      restler.post(url, {data: registration}).on('complete', getRegistrationsByQuery);
+    }
+    
+    function getRegistrationsByQuery(){      
+      restler.post(url + 'query/', {data: registration}).on('complete', setFoundRegistrations);
+    }
+
+    var foundRegistrations = null;
+    function setFoundRegistrations(data){        
+      foundRegistrations = data;  
+    }
+
+    waitsFor(function() {
+      return foundRegistrations;
+    }, 200);
+
+    runs(function(){      
+      expect(foundRegistrations.length).toBe(3);      
     });
   });
 });
