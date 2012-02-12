@@ -1,19 +1,44 @@
 
 var _ = require('underscore');
-describe('adding a single registration', function(){	
-  var restler = require('restler');
-  var url = 'http://localhost:8080/timeregs/'
+var restler = require('restler');
+var baseUrl = 'http://localhost:8080/';
+var url = baseUrl + 'timeregs/';
+var loginUrl = baseUrl + 'users/login/';
+
+var timeregService = null;
+
+var createService = function(){
+  createService = function() {}; //only run once    
+  var user = { name: 'test user' };
+  var session = null;
+
+  restler.post(loginUrl, {data: user}).on('complete', saveSession);
+  function saveSession(data, resp){
+      var session = resp.headers['set-cookie'];
+      var options = { headers: { 'cookie': session, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}};
+      timeregService = new restler.Service(options);
+  };          
+};
+
+describe('timereg/source/webservices/timeregs.js', function(){	  
+  beforeEach(function(){
+    createService();          
+    waitsFor(function() {
+      return timeregService;
+    }, 200);
+  });
+  
   it('should be added to list', function(){		
     var regsBefore = null;
     var regsAfter = null;
-    restler.get(url).on('complete', setRegistrationsBefore); 
+    timeregService.get(url, {}).on('complete', setRegistrationsBefore); 
     function setRegistrationsBefore(data, resp){                              
         regsBefore = data.length;     
-        restler.post(url).on('complete', afterCreation);
+        timeregService.post(url, {}).on('complete', afterCreation);
     }
 
     function afterCreation(){     
-        restler.get(url).on('complete', setRegistrationsAfter);  
+        timeregService.get(url, {}).on('complete', setRegistrationsAfter);  
     }
 
     function setRegistrationsAfter(data, resp){               
@@ -31,10 +56,10 @@ describe('adding a single registration', function(){
   it('should be in list after being added', function(){
         
     var createdRegistration = null;
-    restler.post(url).on('complete', afterCreation);
+    timeregService.post(url, {}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;              
-      restler.get(url).on('complete', checkItIsCreated);
+      timeregService.get(url, {}).on('complete', checkItIsCreated);
     }
 
     var matchingRegistrations = null;
@@ -60,7 +85,7 @@ describe('adding a single registration', function(){
     };        
 
     var createdRegistration = null;
-    restler.post(url, {data: registration}).on('complete', afterCreation);
+    timeregService.post(url, {}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;                    
     }
@@ -88,7 +113,7 @@ describe('adding a single registration', function(){
     };        
 
     var createdRegistration = null;
-    restler.post(url, {data: registration}).on('complete', afterCreation);
+    timeregService.post(url, {data: registration}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;                    
     }
@@ -110,11 +135,11 @@ describe('adding a single registration', function(){
   it('should update data', function(){        
     var updatedRegistration = null;
     
-    restler.post(url).on('complete', afterCreation);
+    timeregService.post(url, {}).on('complete', afterCreation);
     
     function afterCreation(data, resp){    
       var updateUrl = url + data._id;
-      restler.put(updateUrl, {data: {'description': 'new description'}}).on('complete', afterUpdate);      
+      timeregService.put(updateUrl, {data: {'description': 'new description'}}).on('complete', afterUpdate);      
     }
 
     function afterUpdate(data, resp){            
@@ -132,12 +157,12 @@ describe('adding a single registration', function(){
   it('should be able to retrieve specific registration', function(){        
     var createdRegistration = null;    
     var retrievedRegistration = null;
-    restler.post(url).on('complete', afterCreation);
+    timeregService.post(url, {}).on('complete', afterCreation);
     
     function afterCreation(data, resp){    
       createdRegistration = data;
       var getSpecificUrl = url + data._id;
-      restler.get(getSpecificUrl).on('complete', specificRetrieved);      
+      timeregService.get(getSpecificUrl, {}).on('complete', specificRetrieved);      
     }
 
     function specificRetrieved(data, resp){            
@@ -157,14 +182,14 @@ describe('adding a single registration', function(){
     var retrievedRegistration = null;
     var specificUrl = null;
 
-    restler.post(url).on('complete', afterCreation);    
+    timeregService.post(url, {}).on('complete', afterCreation);    
     function afterCreation(data, resp){          
       specificUrl = url + data._id;
-      restler.del(specificUrl).on('complete', deleted);      
+      timeregService.del(specificUrl, {}).on('complete', deleted);      
     }
 
     function deleted(data, resp){                  
-      restler.get(specificUrl).on('4XX', notFound);
+      timeregService.get(specificUrl, {}).on('4XX', notFound);
     }
 
     var notThere = null;
@@ -186,18 +211,18 @@ describe('adding a single registration', function(){
     // TODO: a type problem?
     var registration = { description: '' + rightNow };
 
-    restler.post(url, {data: registration}).on('complete', afterCreation);
+    timeregService.post(url, {data: registration}).on('complete', afterCreation);
 
     function afterCreation(){
-      restler.post(url, {data: registration}).on('complete', afterCreation2);
+      timeregService.post(url, {data: registration}).on('complete', afterCreation2);
     }
 
     function afterCreation2(){
-      restler.post(url, {data: registration}).on('complete', getRegistrationsByQuery);
+      timeregService.post(url, {data: registration}).on('complete', getRegistrationsByQuery);
     }
     
     function getRegistrationsByQuery(){      
-      restler.post(url + 'query/', {data: registration}).on('complete', setFoundRegistrations);
+      timeregService.post(url + 'query/', {data: registration}).on('complete', setFoundRegistrations);
     }
 
     var foundRegistrations = null;

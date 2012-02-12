@@ -2,6 +2,7 @@ var _ = require('underscore');
 var ObjectID = require("mongodb").BSONPure.ObjectID;
 var registrationFactory = require('../models/registrationFactory')();
 
+
 module.exports = function (app) {    
     
     app.http.get("/timeregs/", getTimeregs);
@@ -12,7 +13,7 @@ module.exports = function (app) {
             }
             res.json(arr);
         });                    
-    };
+    }
 
     app.http.post("/timeregs/", createTimeReg);
     function createTimeReg(req, res, next) {                
@@ -25,7 +26,7 @@ module.exports = function (app) {
 
             res.json(docs[0]);            
         });        
-    };
+    }
 
     app.http.post("/timeregs/query/", runQuery);
     function runQuery(req, res, next) {           
@@ -35,7 +36,7 @@ module.exports = function (app) {
             }            
             res.json(arr);
         });                    
-    };
+    }
 
     app.http.get("/timeregs/:id", getSpecificTimeReg);
     function getSpecificTimeReg(req, res, next){                    
@@ -51,7 +52,7 @@ module.exports = function (app) {
                         
             res.json(object);
         });
-    };
+    }
 
     app.http.put("/timeregs/:id", updateTimeReg);
     function updateTimeReg(req, res, next){
@@ -67,7 +68,7 @@ module.exports = function (app) {
             
             res.json(object);
         });
-    };
+    }
 
     app.http.del("/timeregs/:id", deleteTimeReg);
     function deleteTimeReg(req, res, next){        
@@ -83,5 +84,5 @@ module.exports = function (app) {
 
             res.json({success:true});
         });
-    };
+    }
 };
