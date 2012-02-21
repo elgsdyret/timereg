@@ -9,10 +9,10 @@ module.exports = function(userId, collection, errorCallback) {
 
 	return {
 		find: function() {	
-			return mongoBuilder.ensureSafeSelector(collection.find);
+			return mongoBuilder.ensureSafeSelector(collection, 'find');
 		},
 		findOne: function() {
-			return mongoBuilder.ensureSafeSelector(collection.findOne);
+			return mongoBuilder.ensureSafeSelector(collection, 'findOne');
 		},
 		insert: function(docs, options, callback) {											
 			// If it is not an array we make it into one
