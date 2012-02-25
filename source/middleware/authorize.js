@@ -17,7 +17,7 @@ var isValidForAuthorization = function(req){
 module.exports = function(){
 	return function(req, res, next) {                
         if (!isValidForAuthorization(req)) {
-        	return res.redirect('/', errors.notAuthorized().httpCode());        	        
+        	return res.redirect('/', errors.notAuthorized().getHttpCode());        	        
         }
         next();
     }	

@@ -1,10 +1,15 @@
 ﻿/* Load config file */
+process.on('uncaughtException', function (err) {
+    console.log('Caught exception: ' + err, err.stack);
+});
+
 var app = {};
 app.config = require('./util/configLoader').config;
 app.errors = require('./util/errors')();
 
 /* Mongo DB */
-app.mongo = require('./mongo/init')(app);
+var mongo = require('./mongo/init')(app);
+var collectionFactory = require('./mongo/safeCollectionFactory')(mongo);
 
 app.middleware = require('./middleware');
 
@@ -12,11 +17,12 @@ app.middleware = require('./middleware');
 var express = require('express');
 app.http = express.createServer();
 
-app.http.configure(function(){
-	app.http.use(express.logger());
+app.http.configure(function(){    
+	app.http.use(express.logger({ format:':date :method :url :status ":user-agent" - :response-time ms :res[errorMessage]' }));
 	configureAuthorization(app);
     app.http.use(express.methodOverride());
     app.http.use(express.bodyParser());
+    app.http.use(app.middleware.exposeSafeCollections(collectionFactory));
     app.http.use(app.http.router);
     app.http.use(app.middleware.errorHandling());
     app.http.use(express.static(__dirname + '/public'));

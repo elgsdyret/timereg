@@ -7,7 +7,7 @@ module.exports = function (app) {
     
     app.http.get("/timeregs/", getTimeregs);
     function getTimeregs(req, res, next) {                        
-        app.mongo.timereg.find({}).toArray(function (err, arr) {
+        req.mongo.timereg.find({}).toArray(function (err, arr) {
             if (err) {
                 return next(app.errors.mongoError(err));
             }
@@ -19,7 +19,7 @@ module.exports = function (app) {
     function createTimeReg(req, res, next) {                
         var timeRegToDay = registrationFactory.forToday();                
         var timeReg = _({}).extend(timeRegToDay, req.body);        
-        app.mongo.timereg.insert(timeReg, function(err, docs) {
+        req.mongo.timereg.insert(timeReg, function(err, docs) {
             if (err) {
                 return next(app.errors.mongoError(err));
             }            
@@ -30,7 +30,7 @@ module.exports = function (app) {
 
     app.http.post("/timeregs/query/", runQuery);
     function runQuery(req, res, next) {           
-        app.mongo.timereg.find(req.body).toArray(function (err, arr) {
+        req.mongo.timereg.find(req.body).toArray(function (err, arr) {
             if (err) {
                 return next(app.errors.mongoError(err));
             }            
@@ -40,7 +40,7 @@ module.exports = function (app) {
 
     app.http.get("/timeregs/:id", getSpecificTimeReg);
     function getSpecificTimeReg(req, res, next){                    
-        app.mongo.timereg.findOne({ _id:new ObjectID(req.params.id)}, function (err, object) {
+        req.mongo.timereg.findOne({ _id:new ObjectID(req.params.id)}, function (err, object) {
 
             if (err) {
                 return next(app.errors.mongoError(err));
@@ -56,8 +56,8 @@ module.exports = function (app) {
 
     app.http.put("/timeregs/:id", updateTimeReg);
     function updateTimeReg(req, res, next){
-        var object = req.body;                
-        app.mongo.timereg.update({_id: new ObjectID(req.params.id)}, object, {safe: true}, function(err, count) {
+        var object = req.body;           
+        req.mongo.timereg.update({_id: new ObjectID(req.params.id)}, object, {safe: true}, function(err, count) {
             if (err) {                
                 return next(err);
             }
@@ -72,7 +72,7 @@ module.exports = function (app) {
 
     app.http.del("/timeregs/:id", deleteTimeReg);
     function deleteTimeReg(req, res, next){        
-        app.mongo.timereg.findAndModify({_id:new ObjectID(req.params.id)}, {}, {}, {remove:true}, function (err, object) {
+        req.mongo.timereg.findAndModify({_id:new ObjectID(req.params.id)}, {}, {}, {remove:true}, function (err, object) {
 
             if (err) {
                 return next(error);

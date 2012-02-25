@@ -1,28 +1,31 @@
 
 var _ = require('underscore');
 var restler = require('restler');
-var baseUrl = 'http://localhost:8080/';
-var url = baseUrl + 'timeregs/';
-var loginUrl = baseUrl + 'users/login/';
+var timeregService = null, timeregService2 = null;
 
-var timeregService = null;
-
-var createService = function(){
-  createService = function() {}; //only run once    
+var createServices = function(){
+  createServices = function() {}; //only run once    
   var user = { name: 'test user' };
-  var session = null;
+  var user2 = { name: 'test user2' };  
 
-  restler.post(loginUrl, {data: user}).on('complete', saveSession);
+  restler.post('http://localhost:8080/users/login/', {data: user}).on('complete', saveSession);
   function saveSession(data, resp){
       var session = resp.headers['set-cookie'];
-      var options = { headers: { 'cookie': session, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}};
+      var options = { baseURL: 'http://localhost:8080/timeregs/', headers: { 'cookie': session, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}};
       timeregService = new restler.Service(options);
   };          
+
+  restler.post('http://localhost:8080/users/login/', {data: user2}).on('complete', saveSession2);
+  function saveSession2(data, resp){
+      var session = resp.headers['set-cookie'];
+      var options = { baseURL: 'http://localhost:8080/timeregs/', headers: { 'cookie': session, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}};
+      timeregService2 = new restler.Service(options);
+  };
 };
 
 describe('timereg/source/webservices/timeregs.js', function(){	  
   beforeEach(function(){
-    createService();          
+    createServices();          
     waitsFor(function() {
       return timeregService;
     }, 200);
@@ -31,14 +34,14 @@ describe('timereg/source/webservices/timeregs.js', function(){
   it('should be added to list', function(){		
     var regsBefore = null;
     var regsAfter = null;
-    timeregService.get(url, {}).on('complete', setRegistrationsBefore); 
+    timeregService.get('', {}).on('complete', setRegistrationsBefore); 
     function setRegistrationsBefore(data, resp){                              
         regsBefore = data.length;     
-        timeregService.post(url, {}).on('complete', afterCreation);
+        timeregService.post('', {}).on('complete', afterCreation);
     }
 
     function afterCreation(){     
-        timeregService.get(url, {}).on('complete', setRegistrationsAfter);  
+        timeregService.get('', {}).on('complete', setRegistrationsAfter);  
     }
 
     function setRegistrationsAfter(data, resp){               
@@ -56,10 +59,10 @@ describe('timereg/source/webservices/timeregs.js', function(){
   it('should be in list after being added', function(){
         
     var createdRegistration = null;
-    timeregService.post(url, {}).on('complete', afterCreation);
+    timeregService.post('', {}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;              
-      timeregService.get(url, {}).on('complete', checkItIsCreated);
+      timeregService.get('', {}).on('complete', checkItIsCreated);
     }
 
     var matchingRegistrations = null;
@@ -85,7 +88,7 @@ describe('timereg/source/webservices/timeregs.js', function(){
     };        
 
     var createdRegistration = null;
-    timeregService.post(url, {}).on('complete', afterCreation);
+    timeregService.post('', {}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;                    
     }
@@ -113,7 +116,7 @@ describe('timereg/source/webservices/timeregs.js', function(){
     };        
 
     var createdRegistration = null;
-    timeregService.post(url, {data: registration}).on('complete', afterCreation);
+    timeregService.post('', {data: registration}).on('complete', afterCreation);
     function afterCreation(data, resp){
       createdRegistration = data;                    
     }
@@ -135,10 +138,10 @@ describe('timereg/source/webservices/timeregs.js', function(){
   it('should update data', function(){        
     var updatedRegistration = null;
     
-    timeregService.post(url, {}).on('complete', afterCreation);
+    timeregService.post('', {}).on('complete', afterCreation);
     
     function afterCreation(data, resp){    
-      var updateUrl = url + data._id;
+      var updateUrl = data._id;
       timeregService.put(updateUrl, {data: {'description': 'new description'}}).on('complete', afterUpdate);      
     }
 
@@ -157,11 +160,11 @@ describe('timereg/source/webservices/timeregs.js', function(){
   it('should be able to retrieve specific registration', function(){        
     var createdRegistration = null;    
     var retrievedRegistration = null;
-    timeregService.post(url, {}).on('complete', afterCreation);
+    timeregService.post('', {}).on('complete', afterCreation);
     
     function afterCreation(data, resp){    
       createdRegistration = data;
-      var getSpecificUrl = url + data._id;
+      var getSpecificUrl = data._id;
       timeregService.get(getSpecificUrl, {}).on('complete', specificRetrieved);      
     }
 
@@ -182,9 +185,9 @@ describe('timereg/source/webservices/timeregs.js', function(){
     var retrievedRegistration = null;
     var specificUrl = null;
 
-    timeregService.post(url, {}).on('complete', afterCreation);    
+    timeregService.post('', {}).on('complete', afterCreation);    
     function afterCreation(data, resp){          
-      specificUrl = url + data._id;
+      specificUrl = data._id;
       timeregService.del(specificUrl, {}).on('complete', deleted);      
     }
 
@@ -211,18 +214,18 @@ describe('timereg/source/webservices/timeregs.js', function(){
     // TODO: a type problem?
     var registration = { description: '' + rightNow };
 
-    timeregService.post(url, {data: registration}).on('complete', afterCreation);
+    timeregService.post('', {data: registration}).on('complete', afterCreation);
 
     function afterCreation(){
-      timeregService.post(url, {data: registration}).on('complete', afterCreation2);
+      timeregService.post('', {data: registration}).on('complete', afterCreation2);
     }
 
     function afterCreation2(){
-      timeregService.post(url, {data: registration}).on('complete', getRegistrationsByQuery);
+      timeregService.post('', {data: registration}).on('complete', getRegistrationsByQuery);
     }
     
     function getRegistrationsByQuery(){      
-      timeregService.post(url + 'query/', {data: registration}).on('complete', setFoundRegistrations);
+      timeregService.post('query/', {data: registration}).on('complete', setFoundRegistrations);
     }
 
     var foundRegistrations = null;
@@ -236,6 +239,28 @@ describe('timereg/source/webservices/timeregs.js', function(){
 
     runs(function(){      
       expect(foundRegistrations.length).toBe(3);      
+    });
+  });
+  it('should not be possible to retrieve registrations from another user', function(){
+    
+    var registration = {};
+    timeregService.post('', {data: registration}).on('complete', afterCreation);
+
+    function afterCreation(data, resp){      
+      timeregService2.get(data._id, {}).on('4XX', failedRetrievingFromOtherUser);
+    }
+
+    var failedToRetrieve = false;
+    function failedRetrievingFromOtherUser(){
+      failedToRetrieve = true;
+    }
+        
+    waitsFor(function() {
+      return failedToRetrieve;
+    }, 200);
+
+    runs(function(){      
+      expect(failedToRetrieve).toBeTruthy();      
     });
   });
 });

@@ -16,8 +16,8 @@ describe('timereg/source/webservices/users.js', function(){
 		restler.post(loginUrl, {data: user}).on('complete', sessionCookieReturned);
 
 		var session = null;
-		function sessionCookieReturned(data, resp){			
-			session = resp.headers['set-cookie'];	
+		function sessionCookieReturned(data, resp){						
+			session = resp.headers['set-cookie'];				
 			var options = { headers: { 'cookie': session, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}};
 
 			restler.get(registrationUrl, options).on('complete', retrievedRegistrations);
